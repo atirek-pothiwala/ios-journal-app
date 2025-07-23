@@ -4,7 +4,7 @@ A minimalistic iOS Journal app built with SwiftUI and Core Data.
 Effortlessly record your thoughts and view them anytime, with full support for Light and Dark Modes.
 
 ## 🎬 Preview Demo
-![Preview Demo](Demo.gif)
+![Preview Demo](demo.gif)
 
 ---
 
