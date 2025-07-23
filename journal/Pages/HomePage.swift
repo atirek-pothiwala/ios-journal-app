@@ -11,8 +11,6 @@ import CoreData
 struct HomePage: View {
     
     @StateObject private var vm: JournalVM
-    @State private var editMode: EditMode = .inactive
-    var isEditMode: Bool { editMode.isEditing }
     
     init(_ context: NSManagedObjectContext) {
         _vm = StateObject(
@@ -54,20 +52,15 @@ struct HomePage: View {
                 }
             }
             .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: vm.hasEntries ? .topLeading : .center)
-            .environment(\.editMode, $editMode)
             .safeAreaPadding(.vertical)
             .navigationTitle(
                 Text("Journal Book")
-                    .foregroundStyle(Color.main)
             )
             .navigationBarTitleDisplayMode(.large)
             .tint(Color.black)
             .toolbar {
                 ToolbarItem(placement: .topBarTrailing) {
                     btnAdd
-                }
-                ToolbarItem(placement: .topBarTrailing) {
-                    btnDelete
                 }
             }
         }
@@ -77,22 +70,8 @@ struct HomePage: View {
         NavigationLink {
             AddPage(listener: self)
         } label: {
-            Image(systemName: "plus.app.fill")
+            Image(systemName: "plus.app")
                 .foregroundStyle(Color.main)
-        }
-        .buttonStyle(.plain)
-        .font(.title)
-        .disabled(isEditMode)
-    }
-    
-    var btnDelete: some View {
-        Button {
-            withAnimation {
-                editMode = isEditMode ? .inactive : .active
-            }
-        } label: {
-            Image(systemName: isEditMode ? "trash.slash.square.fill" : "trash.square.fill")
-                .foregroundStyle(isEditMode ? Color.green : Color.main)
         }
         .buttonStyle(.plain)
         .font(.title)

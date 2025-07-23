@@ -24,7 +24,7 @@ struct JournalCell: View {
                 }
                 .bold()
                 .padding(.all, 10)
-                .foregroundStyle(Color.main)
+                .foregroundStyle(Color.white)
                 .background(Color.orange)
                 .clipShape(RoundedRectangle(cornerRadius: 15))
             }

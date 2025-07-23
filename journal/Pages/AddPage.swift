@@ -74,7 +74,7 @@ struct AddPage: View {
         }
         .navigationBarBackButtonHidden()
         .navigationBarTitleDisplayMode(.large)
-        .navigationTitle(Text("Add you notes"))
+        .navigationTitle(Text("Add your notes"))
         .tint(Color.black)
         .toolbar {
             ToolbarItem(placement: .navigation) {

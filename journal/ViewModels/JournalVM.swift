@@ -38,6 +38,7 @@ class JournalVM: ObservableObject {
     
     func deleteEntry(_ offsets: IndexSet) {
         offsets.map { entries[$0] }.forEach(context.delete)
+        entries.remove(atOffsets: offsets)
         context.trySave()
     }
 
