@@ -1,5 +1,5 @@
 //
-//  ListPage.swift
+//  HomePage.swift
 //  journal
 //
 //  Created by Atirek Pothiwala on 17/07/25.
