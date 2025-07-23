@@ -1,51 +1,48 @@
 //
-//  ListVM.swift
+//  JournalVM.swift
 //  journal
 //
 //  Created by Atirek Pothiwala on 17/07/25.
 //
 
 import Foundation
-import SwiftUI
 import CoreData
 
-class ListVM: ObservableObject {
+class JournalVM: ObservableObject {
     private let context: NSManagedObjectContext
     @Published var entries: [EntryItem] = []
+    
+    var hasEntries: Bool {
+        return !entries.isEmpty
+    }
 
     init(context: NSManagedObjectContext) {
         self.context = context
         fetchEntries()
     }
-
-    func fetchEntries() {
-        do {
-            let request: NSFetchRequest<EntryItem> = EntryItem.fetchRequest()
-            request.sortDescriptors = [
-                NSSortDescriptor(keyPath: \EntryItem.timestamp, ascending: false)
-            ]
-            entries = try context.fetch(request)
-        } catch let e as NSError {
-            entries = []
-            print("Fetch Error: \(e), \(e.userInfo)")
-        }
+    
+    func createEntry(_ date: Date, _ text: String) {
+        let item = context.createEntry()
+        updateEntry(item, date, text)
     }
-
-    func addEntry(text: String) {
-        let newEntry = EntryItem(context: context)
-        newEntry.id = UUID()
-        newEntry.text = text
-        newEntry.timestamp = Date()
-        
+    
+    func updateEntry(_ item: EntryItem, _ date: Date, _ text: String) {
+        item.timestamp = date
+        item.text = text
         save()
     }
 
+    func fetchEntries() {
+        self.entries = context.fetchEntries()
+    }
+    
+    func deleteEntry(_ offsets: IndexSet) {
+        offsets.map { entries[$0] }.forEach(context.delete)
+        context.trySave()
+    }
+
     private func save() {
-        do {
-            try context.save()
-            fetchEntries()
-        } catch let e as NSError {
-            print("Save Error: \(e), \(e.userInfo)")
-        }
+        context.trySave()
+        fetchEntries()
     }
 }

@@ -8,10 +8,11 @@
 import SwiftUI
 import CoreData
 
-struct JournalPage: View {
+struct HomePage: View {
     
     @StateObject private var vm: JournalVM
     @State private var editMode: EditMode = .inactive
+    var isEditMode: Bool { editMode.isEditing }
     
     init(_ context: NSManagedObjectContext) {
         _vm = StateObject(
@@ -26,7 +27,7 @@ struct JournalPage: View {
                     List {
                         ForEach($vm.entries) { item in
                             NavigationLink {
-                                AddNotesPage(entryItem: item.wrappedValue, listener: self)
+                                AddPage(entryItem: item.wrappedValue, listener: self)
                             } label: {
                                 JournalCell(item: item)
                             }
@@ -74,31 +75,31 @@ struct JournalPage: View {
     
     var btnAdd: some View {
         NavigationLink {
-            AddNotesPage(listener: self)
+            AddPage(listener: self)
         } label: {
             Image(systemName: "plus.app.fill")
                 .foregroundStyle(Color.main)
         }
         .buttonStyle(.plain)
         .font(.title)
-        .disabled(editMode.isEditing)
+        .disabled(isEditMode)
     }
     
     var btnDelete: some View {
         Button {
             withAnimation {
-                editMode = editMode.isEditing ? .inactive : .active
+                editMode = isEditMode ? .inactive : .active
             }
         } label: {
-            Image(systemName: editMode.isEditing ? "trash.slash.square.fill" : "trash.square.fill")
-                .foregroundStyle(editMode.isEditing ? Color.red : Color.main)
+            Image(systemName: isEditMode ? "trash.slash.square.fill" : "trash.square.fill")
+                .foregroundStyle(isEditMode ? Color.green : Color.main)
         }
         .buttonStyle(.plain)
         .font(.title)
     }
 }
 
-extension JournalPage: OnNoteListener {
+extension HomePage: OnNoteListener {
     func onSave(entryItem: EntryItem?, date: Date, text: String) {
         if entryItem != nil {
             vm.updateEntry(entryItem!, date, text)
@@ -109,5 +110,5 @@ extension JournalPage: OnNoteListener {
 }
 
 #Preview {
-    JournalPage(PersistenceController.shared.container.viewContext)
+    HomePage(PersistenceController.shared.container.viewContext)
 }

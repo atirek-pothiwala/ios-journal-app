@@ -11,7 +11,7 @@ protocol OnNoteListener {
     func onSave(entryItem: EntryItem?, date: Date, text: String)
 }
 
-struct AddNotesPage: View {
+struct AddPage: View {
     
     @Environment(\.dismiss) private var dismiss
     
@@ -78,43 +78,51 @@ struct AddNotesPage: View {
         .tint(Color.black)
         .toolbar {
             ToolbarItem(placement: .navigation) {
-                Button {
-                    withAnimation {
-                        dismiss()
-                    }
-                } label: {
-                    HStack(alignment: .center, spacing: 5) {
-                        Image(systemName: "chevron.backward")
-                        Text("Journal Book")
-                    }
-                }
-                .buttonStyle(.plain)
-                .foregroundStyle(Color.black)
-                .font(.title3)
+                btnDismiss
             }
             ToolbarItem(placement: .topBarTrailing) {
-                Button {
-                    withAnimation {
-                        dismiss()
-                        listener?.onSave(entryItem: entryItem, date: entryDate, text: entryText)
-                    }
-                } label: {
-                    Image(systemName: "checkmark")
-                        .background {
-                            if !entryText.isEmpty {
-                                Circle()
-                                    .fill(Color.gray.opacity(0.25))
-                                    .frame(width: 20, height: 20)
-                            }
-                        }
-                }
-                .buttonStyle(.plain)
-                .foregroundStyle(Color.orange)
-                .font(.title3)
-                .bold()
-                .disabled(entryText.isEmpty)
+                btnDone
             }
         }
+    }
+    
+    var btnDismiss: some View {
+        Button {
+            withAnimation {
+                dismiss()
+            }
+        } label: {
+            HStack(alignment: .center, spacing: 5) {
+                Image(systemName: "chevron.backward")
+                Text("Journal Book")
+            }
+        }
+        .buttonStyle(.plain)
+        .foregroundStyle(Color.main)
+        .font(.title3)
+    }
+    
+    var btnDone: some View {
+        Button {
+            withAnimation {
+                dismiss()
+                listener?.onSave(entryItem: entryItem, date: entryDate, text: entryText)
+            }
+        } label: {
+            Image(systemName: "checkmark")
+                .background {
+                    if !entryText.isEmpty {
+                        Circle()
+                            .fill(Color.gray.opacity(0.25))
+                            .frame(width: 20, height: 20)
+                    }
+                }
+        }
+        .buttonStyle(.plain)
+        .foregroundStyle(Color.orange)
+        .font(.title3)
+        .bold()
+        .disabled(entryText.isEmpty)
     }
 }
 
@@ -122,7 +130,7 @@ struct AddNotesPage: View {
     let context = PersistenceController.preview.container.viewContext
     if let item = context.fetchEntries().first {
         NavigationView {
-            AddNotesPage(entryItem: item, listener: nil)
+            AddPage(entryItem: item, listener: nil)
         }
     }
 }
