@@ -1,27 +1,36 @@
 # 📓 iOS Journal App
 
-A minimalistic iOS Journal app built with SwiftUI and Core Data.  
-Effortlessly record your thoughts and view them anytime, with full support for Light and Dark Modes.
+A minimalistic journal app for iOS built using **SwiftUI** and **Core Data**.  
+Effortlessly record your thoughts and memories — now with **image support**.  
+Fully compatible with both **Light** and **Dark Mode**.
+
+---
 
 ## 🎬 Preview Demo
+
 ![Preview Demo](demo.gif)
 
 ---
 
 ## 🛠 Features
 
-- 🏠 **Home Page**:  
-  View a list of your journal entries stored in Core Data.
+- 🏠 **Home Page**  
+  View a list of your journal entries saved in Core Data.
 
-- ➕ **Add Entry Page**:  
-  Create and save a new journal entry.
+- ➕ **Add Entry Page**  
+  Create a new journal entry and store your thoughts securely on your device.
 
-- 🌗 **Light & Dark Mode Support**:  
-  The app automatically adapts to your device's appearance settings to provide an optimal reading experience.
+- 🖼️ **Image Support**
+  Attach multiple images to each journal entry and view them directly in the app.
+
+- 🌗 **Light & Dark Mode Support**  
+  The app adapts automatically to your system appearance for an optimal viewing experience.
+
+---
 
 ## 🧱 Tech Stack
 
-- **SwiftUI** – for building modern declarative UI.
-- **Core Data** – for local data storage and persistence.
-- **Appearance Adaptability** – Support for light and dark themes out of the box.
-
+- **SwiftUI** – Modern declarative UI framework.
+- **Core Data** – Persistent local storage.
+- **UIKit Interoperability** – For advanced image picking or editing.
+- **Dark Mode Adaptability** – Seamless UI changes based on system appearance.
