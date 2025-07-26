@@ -16,10 +16,11 @@ struct ImageViewer: View {
 
     @State private var selectedIndex = 0
     
-    init(_ images: [String], selectedIndex: Int = 0) {
+    init(_ images: [String], index: Int = 0) {
         self.images = images.compactMap { path in
             return path.loadImageFromDocuments()
         }
+        self.selectedIndex = index
     }
 
     var body: some View {
