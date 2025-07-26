@@ -86,7 +86,7 @@ struct AddPage: View {
         .safeAreaPadding(.all)
         .fullScreenCover(isPresented: $showPicker) {
             withAnimation {
-                PhotoPicker(sourceType: .photoLibrary) { image in
+                ImagePicker(sourceType: .photoLibrary) { image in
                     Task {
                         if let fileName = image.saveToDocuments() {
                             await MainActor.run {

@@ -1,5 +1,5 @@
 //
-//  PhotoPicker.swift
+//  ImagePicker.swift
 //  journal
 //
 //  Created by Atirek Pothiwala on 25/07/25.
@@ -8,7 +8,7 @@ import SwiftUI
 import PhotosUI
 import UIKit
 
-struct PhotoPicker: UIViewControllerRepresentable {
+struct ImagePicker: UIViewControllerRepresentable {
     @Environment(\.presentationMode) private var presentationMode
     var sourceType: UIImagePickerController.SourceType = .photoLibrary
     var onImagePicked: (UIImage) -> Void
@@ -26,13 +26,13 @@ struct PhotoPicker: UIViewControllerRepresentable {
     }
 
     class Coordinator: NSObject, UINavigationControllerDelegate, UIImagePickerControllerDelegate {
-        let parent: PhotoPicker
-        init(_ parent: PhotoPicker) {
+        let parent: ImagePicker
+        init(_ parent: ImagePicker) {
             self.parent = parent
         }
 
         func imagePickerController(_ picker: UIImagePickerController, didFinishPickingMediaWithInfo info: [UIImagePickerController.InfoKey : Any]) {
-            if let image = info[.originalImage] as? UIImage {
+            if let image = info[.editedImage] as? UIImage {
                 parent.onImagePicked(image)
             }
             parent.presentationMode.wrappedValue.dismiss()

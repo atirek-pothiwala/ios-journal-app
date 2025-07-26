@@ -22,7 +22,7 @@ struct RootNavigator: View {
                     case .add(let entry):
                         AddPage(entry)
                     case .viewer(let images, let index):
-                        ImageViewer(images, index: index)
+                        ImageViewer(images, index)
                     }
                 }
         }
