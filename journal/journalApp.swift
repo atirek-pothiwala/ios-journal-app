@@ -9,12 +9,10 @@ import SwiftUI
 
 @main
 struct journalApp: App {
-    let persistenceController = PersistenceController.shared
 
     var body: some Scene {
         WindowGroup {
-            HomePage(persistenceController.container.viewContext)
-                .environment(\.managedObjectContext, persistenceController.container.viewContext)
+            RootNavigator()
         }
     }
 }

@@ -10,65 +10,69 @@ import CoreData
 
 struct HomePage: View {
     
-    @StateObject private var vm: JournalVM
-    
-    init(_ context: NSManagedObjectContext) {
-        _vm = StateObject(
-            wrappedValue: JournalVM(context: context)
-        )
-    }
+    @EnvironmentObject private var navigator: Navigator
+    @Environment(\.managedObjectContext) private var context: NSManagedObjectContext
+    @StateObject private var vm: HomeVM = HomeVM()
     
     var body: some View {
-        NavigationView {
-            ZStack {
-                if vm.hasEntries {
-                    List {
-                        ForEach($vm.entries) { item in
-                            NavigationLink {
-                                AddPage(entryItem: item.wrappedValue, listener: self)
-                            } label: {
-                                JournalCell(item: item)
-                            }
-                        }
-                        .onDelete { indexSet in
+        ZStack {
+            if vm.hasEntries {
+                List {
+                    ForEach($vm.entries, id: \.self) { entry in
+                        Button {
                             withAnimation {
-                                vm.deleteEntry(indexSet)
+                                navigator.push(Route.add(entry.wrappedValue))
+                            }
+                        } label: {
+                            JournalCell(entry) { index in
+                                guard let images = entry.wrappedValue.images?.decodeArray(), !images.isEmpty else {
+                                    return
+                                }
+                                withAnimation {
+                                    navigator.push(Route.viewer(images, index))
+                                }
                             }
                         }
                     }
-                    .listStyle(.plain)
-                    .refreshable {
-                        vm.fetchEntries()
+                    .onDelete { indexSet in
+                        withAnimation {
+                            vm.deleteEntry(context, indexSet)
+                        }
                     }
-                } else {
-                    VStack(alignment: .center, spacing: 10) {
-                        Image(systemName: "books.vertical")
-                            .font(.largeTitle)
-                        Text("Your journal is empty!")
-                            .font(.subheadline)
-                            .italic()
-                    }
-                    .foregroundStyle(Color.main)
                 }
-            }
-            .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: vm.hasEntries ? .topLeading : .center)
-            .safeAreaPadding(.vertical)
-            .navigationTitle(
-                Text("Journal Book")
-            )
-            .navigationBarTitleDisplayMode(.large)
-            .tint(Color.black)
-            .toolbar {
-                ToolbarItem(placement: .topBarTrailing) {
-                    btnAdd
+                .listStyle(.plain)
+                .refreshable {
+                    vm.fetchEntries(context)
                 }
+            } else {
+                VStack(alignment: .center, spacing: 10) {
+                    Image(systemName: "books.vertical")
+                        .font(.largeTitle)
+                    Text("Your journal is empty!")
+                        .font(.subheadline)
+                        .italic()
+                }
+                .foregroundStyle(Color.main)
             }
+        }
+        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: vm.hasEntries ? .topLeading : .center)
+        .safeAreaPadding(.vertical)
+        .navigationTitle(Text("My Journal"))
+        .navigationBarTitleDisplayMode(.large)
+        .tint(Color.black)
+        .toolbar {
+            ToolbarItem(placement: .topBarTrailing) {
+                btnAdd
+            }
+        }
+        .onAppear {
+            vm.fetchEntries(context)
         }
     }
     
     var btnAdd: some View {
-        NavigationLink {
-            AddPage(listener: self)
+        Button {
+            navigator.push(Route.add())
         } label: {
             Image(systemName: "plus.app")
                 .foregroundStyle(Color.main)
@@ -76,18 +80,4 @@ struct HomePage: View {
         .buttonStyle(.plain)
         .font(.title)
     }
-}
-
-extension HomePage: OnNoteListener {
-    func onSave(entryItem: EntryItem?, date: Date, text: String) {
-        if entryItem != nil {
-            vm.updateEntry(entryItem!, date, text)
-        } else {
-            vm.createEntry(date, text)
-        }
-    }
-}
-
-#Preview {
-    HomePage(PersistenceController.shared.container.viewContext)
 }

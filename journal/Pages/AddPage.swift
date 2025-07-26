@@ -6,54 +6,59 @@
 //
 
 import SwiftUI
+import UIKit
+import CoreData
 
-protocol OnNoteListener {
-    func onSave(entryItem: EntryItem?, date: Date, text: String)
-}
 
 struct AddPage: View {
     
-    @Environment(\.dismiss) private var dismiss
+    @EnvironmentObject private var navigator: Navigator
+    @Environment(\.managedObjectContext) private var context: NSManagedObjectContext
+    @StateObject private var vm: AddVM
     
-    @State var entryDate: Date
-    @State var entryText: String
+    @State private var showPicker: Bool = false
     
-    let entryItem: EntryItem?
-    let listener: OnNoteListener?
-    
-    init(entryItem: EntryItem? = nil, listener: OnNoteListener?) {
-        self.entryDate = entryItem?.timestamp ?? .now
-        self.entryText = entryItem?.text ?? ""
-        self.entryItem = entryItem
-        self.listener = listener
+    init(_ entry: JournalEntry? = nil) {
+        _vm = StateObject(
+            wrappedValue: AddVM(entry)
+        )
     }
     
     var body: some View {
-        NavigationView {
-            VStack(alignment: .leading, spacing: 15) {
-                DatePicker(selection: $entryDate, displayedComponents: .date, label: {
-                    HStack(alignment: .center, spacing: 7.5) {
-                        Image(systemName: "calendar")
-                        Text("Entry Date")
-                    }
+        ScrollView {
+            VStack(alignment: .leading, spacing: 16) {
+                DatePicker(selection: $vm.timestamp, displayedComponents: .date, label: {
+                    sectionTitle(
+                        title: "Entry Date",
+                        systemImage: "calendar"
+                    )
                 })
                 .datePickerStyle(.compact)
                 .font(.headline)
                 .tint(.orange)
                 
-                Rectangle()
-                    .frame(maxWidth: .infinity, maxHeight: 10)
-                    .foregroundStyle(Color.orange)
-                    .padding(.bottom, 10)
-                    .ignoresSafeArea()
+                divider
+                                    
+                sectionTitle(
+                    title: "Attachment (\(vm.checkImages))",
+                    systemImage: "photo.fill"
+                )
                 
-                HStack(alignment: .center, spacing: 7.5) {
-                    Image(systemName: "pencil.and.list.clipboard")
-                    Text("Enter Notes")
+                ImagePagination.DefaultView(
+                    images: $vm.images,
+                    deletes: $vm.deletes,
+                    max: vm.maxImages) {
+                    showPicker.toggle()
                 }
-                .font(.headline)
                 
-                TextEditor(text: $entryText)
+                divider
+                
+                sectionTitle(
+                    title: "Enter Notes",
+                    systemImage: "pencil.and.list.clipboard"
+                )
+                
+                TextEditor(text: $vm.text)
                     .keyboardType(.alphabet)
                     .textEditorStyle(.plain)
                     .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
@@ -62,15 +67,35 @@ struct AddPage: View {
                     .tint(Color.orange)
                     .padding(.all, 10)
                     .overlay {
-                        RoundedRectangle(cornerRadius: 10)
+                        RoundedRectangle(cornerRadius: 8)
                             .stroke(Color.orange, lineWidth: 1.5)
                     }
                 
-                Spacer()
+                HStack(alignment: .center) {
+                    Spacer()
+                    
+                    Text(vm.checkCharacters)
+                        .font(.footnote)
+                        .foregroundStyle(vm.hasMinCharacters ? Color.green : Color.main)
+                }
             }
-            .foregroundStyle(Color.main)
-            .frame(maxWidth: .infinity, maxHeight: .infinity)
-            .safeAreaPadding(.all)
+        }
+        .scrollIndicators(.never)
+        .foregroundStyle(Color.main)
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
+        .safeAreaPadding(.all)
+        .fullScreenCover(isPresented: $showPicker) {
+            withAnimation {
+                PhotoPicker(sourceType: .photoLibrary) { image in
+                    Task {
+                        if let fileName = image.saveToDocuments() {
+                            await MainActor.run {
+                                vm.images.append(fileName)
+                            }
+                        }
+                    }
+                }
+            }
         }
         .navigationBarBackButtonHidden()
         .navigationBarTitleDisplayMode(.large)
@@ -78,7 +103,7 @@ struct AddPage: View {
         .tint(Color.black)
         .toolbar {
             ToolbarItem(placement: .navigation) {
-                btnDismiss
+                btnBack
             }
             ToolbarItem(placement: .topBarTrailing) {
                 btnDone
@@ -86,15 +111,15 @@ struct AddPage: View {
         }
     }
     
-    var btnDismiss: some View {
+    var btnBack: some View {
         Button {
             withAnimation {
-                dismiss()
+                navigator.pop()
             }
         } label: {
             HStack(alignment: .center, spacing: 5) {
                 Image(systemName: "chevron.backward")
-                Text("Journal Book")
+                Text("My Journal")
             }
         }
         .buttonStyle(.plain)
@@ -104,14 +129,18 @@ struct AddPage: View {
     
     var btnDone: some View {
         Button {
-            withAnimation {
-                dismiss()
-                listener?.onSave(entryItem: entryItem, date: entryDate, text: entryText)
+            Task {
+                vm.save(context)
+                await MainActor.run {
+                    withAnimation {
+                        navigator.pop()
+                    }
+                }
             }
         } label: {
             Image(systemName: "checkmark")
                 .background {
-                    if !entryText.isEmpty {
+                    if vm.hasMinCharacters {
                         Circle()
                             .fill(Color.gray.opacity(0.25))
                             .frame(width: 20, height: 20)
@@ -122,15 +151,22 @@ struct AddPage: View {
         .foregroundStyle(Color.orange)
         .font(.title3)
         .bold()
-        .disabled(entryText.isEmpty)
+        .disabled(!vm.hasMinCharacters)
+    }
+    
+    var divider: some View {
+        Rectangle()
+            .frame(maxWidth: .infinity, maxHeight: 2)
+            .foregroundStyle(Color.orange)
+            .ignoresSafeArea()
+    }
+    
+    func sectionTitle(title: String, systemImage: String) -> some View {
+        HStack(alignment: .center, spacing: 7.5) {
+            Image(systemName: systemImage)
+            Text(title)
+        }
+        .font(.headline)
     }
 }
 
-#Preview {
-    let context = PersistenceController.preview.container.viewContext
-    if let item = context.fetchEntries().first {
-        NavigationView {
-            AddPage(entryItem: item, listener: nil)
-        }
-    }
-}

@@ -15,10 +15,17 @@ struct PersistenceController {
         let result = PersistenceController(inMemory: true)
         let viewContext = result.container.viewContext
         for i in 0..<5 {
-            let newEntry = viewContext.createEntry()
-            newEntry.text = "Text \(i)"
+            let entry = JournalEntry(context: viewContext)
+            entry.timestamp = Date()
+            entry.text = "Text \(i)"
+            entry.images = ""
+            
+            do {
+                try viewContext.save()
+            } catch (let e as NSError) {
+                print("Error: \(e), \(e.userInfo)")
+            }
         }
-        viewContext.trySave()
         return result
     }()
 
